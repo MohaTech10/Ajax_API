@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<style>
+
+	body{
+		background-color: #638CB8;
+	}
+
+	input{
+		width: 100%;
+		padding: 12px 20px;
+		margin: 8px 0;
+		box-sizing: border-box;
+	}
+
+	input::placeholder {
+	  color: #d3d3d3;
+	}
+
+	.submit{
+		background-color: #6BA3E8;
+	}
+
+	.center-column{
+		width:600px;
+		margin: 20px auto;
+		padding:20px;
+		background-color: #fff;
+		border-radius: 3px;
+		box-shadow: 6px 2px 30px 0px rgba(0,0,0,0.75);
+	}
+
+	.item-row{
+		background-color: #906abd;
+		margin: 10px;
+		padding: 20px;
+		border-radius: 3px;
+		color: #fff;
+		font-size: 16px;
+		box-shadow: 0px -1px 10px -4px rgba(0,0,0,0.75);
+	}
+
+	.btn-danger{
+		{#background-color: #ffae19;#}
+		{#border-color: #e59400;#}
+	}
+    .btn-warning:hover{
+        background: lightgreen;
+        border-color: lightgreen;
+    }
+
+</style>
+</head>
+<body>
+<div class="center-column" id="wrapper">
+
+	<form id="form" action="" method="post">
+{#        <!--{% csrf_token %}#}
+{#        {{ form.as_p }}-->#}
+    		<input  type="text" id="task_title" placeholder="Type Your Task.. ">
+
+		<input class="btn btn-info" type="submit" name="delete task" value="SAVE">
+
+        <!--{% for message in messages %}
+        <div class="item-row" style="background: tomato">{{ message }}</div>
+        {% endfor %} -->
+	</form>
+
+
+</div>
+<div class="center-column">
+
+	<div class="todo-list">
+		<div class="item-row" id="within_it">
+{#            {% for task in tasks %}#}
+{#                <hr/>#}
+{#                <p>{{ task.task_title }}</p>#}
+{#                <a class="btn btn-sm btn-danger" href="#">Delete</a>#}
+{#            {% endfor %}#}
+	    </div>
+    </div>
+
+
+</div>
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+    let the_updated_object_is_active = null;/* initially it's null */
+    // but if it's clicked to be updated then it will grab the object has been chosen to update it
+
+    // fetching the data and having js own some data and access them by Django as back-end
+    // this is called API CALLS,
+    /* START API CALL */
+    let url = 'http://127.0.0.1:8000/api/task/';
+    function fetchTasks(callback) {
+        fetch(url).then((response) => {
+                return response.json();
+            }).then((json_data) => {
+                callback(null, json_data);
+        }).catch(err => {
+            callback(err, null);
+        })
+    }
+
+    function responseOrErrorHandler(err, data){
+        try {
+            within_it.innerHTML = '';
+            for (let i = 0; i < data.length ; i++) {
+                let the_code = `<hr/>
+                <p class="task">${data[i].task_title}</p>
+                <a class="btn  btn-warning edit" href="#">Update</a>
+                <a class="btn  btn-danger del" href="#">Delete</a>`;
+                within_it.innerHTML += the_code;
+
+
+            }
+                 for (let j = 0; j < data.length; j++) {
+                    let edit_bt = document.getElementsByClassName('edit')[j];
+                    let del_bt = document.getElementsByClassName('del')[j];
+                    edit_bt.addEventListener('click', ((the_object_clicked) =>{
+                      return () => {
+                          editObject(the_object_clicked);
+                      }
+                    })(data[j]));
+
+                    del_bt.addEventListener('click', ((the_object_clicked) =>{
+                      return () => {
+                          deleteObject(the_object_clicked);
+                      }
+                    })(data[j]));
+
+                }
+
+        }catch (e) {
+            alert(e)
+        }
+    }
+    fetchTasks(responseOrErrorHandler);
+    /* END OF API CALL */
+
+
+    function crudOperations(url_, which_operation="POST"){
+            let url = url_;
+             let task_title_value = document.getElementById('task_title').value;
+            {#console.log(task_title_value);#}
+            {#console.log(url)#}
+            fetch(url, {
+                    method: which_operation,
+                    headers: {
+                        'Content-type': "application/json",
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({'task_title': task_title_value, })
+                }
+            ).then((responsePost) => {
+                    // هنا ثين then تجي بمعنات بعد ماكبت بوست فالداتابيس وش تبغاني اسوي
+                    // after_posting what then? you could reset the form and also call
+                    // the function that renders out the data and put them in html and we do that
+                    // cuz the rendering will be different that's why we have to call it again
+                    // because it has to render the new data posted
+                    fetchTasks(responseOrErrorHandler);
+                    if (which_operation !== "DELETE")
+                        form.reset();
+                    else{}
+                }
+            ).catch(ee => {
+                alert(ee)
+            })
+
+    }
+
+
+
+    let the_form = document.getElementById('wrapper');
+    the_form.addEventListener('submit', function fetchPost(e){
+
+        e.preventDefault();
+        let url = 'http://127.0.0.1:8000/api/task/';
+        if (the_updated_object_is_active != null) {
+            let url = `http://127.0.0.1:8000/api/task/${the_updated_object_is_active.id}/`;
+            crudOperations(url, 'PUT');
+            the_updated_object_is_active = null;
+
+        }else {
+            crudOperations(url)
+        }
+    });
+
+
+    function editObject(the_clicked_object) {
+        {#console.log("has been clicked an object: ",the_clicked_object.task_title)#}
+        the_updated_object_is_active = the_clicked_object;
+        task_title.value = the_updated_object_is_active.task_title;
+        // if this is active not null means the object has been chosen to update so we do not need to create
+        // new object in the db on the contrary we wanna override the exist object to be updated
+    }
+
+    function deleteObject(deleted_object){
+        the_updated_object_is_active = deleted_object;
+        let url = `http://127.0.0.1:8000/api/task/${deleted_object.id}/`;
+        if (the_updated_object_is_active != null)
+
+            crudOperations(url, 'DELETE');
+            the_updated_object_is_active = null;
+
+    }
+
+
+</script>
+</body>
+</html>
