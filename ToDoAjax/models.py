@@ -6,7 +6,7 @@ from django.db import models
 # then we have to view the model cuz it contains all the data and also
 # view it after being serialized !
 class Tasks(models.Model):
-    task_title = models.CharField(max_length=200)
+    task_title = models.TextField()
     completed = models.BooleanField(default=False)
 
     def __str__(self):
